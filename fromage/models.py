@@ -16,6 +16,7 @@ from PIL import Image, UnidentifiedImageError
 
 from transformers import AutoConfig, AutoModel, AutoModelForCausalLM
 from transformers import OPTForCausalLM, GPT2Tokenizer
+from transformers import BioGptTokenizer, BioGptForCausalLM
 from transformers import CLIPVisionModel, CLIPVisionConfig
 
 from fromage import utils
@@ -24,7 +25,7 @@ from fromage import utils
 class FrozenArgs:
   freeze_lm: bool = True
   freeze_vm: bool = True
-  opt_version: str = 'facebook/opt-6.7b'
+  opt_version: str = 'microsoft/biogpt'
   visual_encoder: str = 'openai/clip-vit-large-patch14'
   n_visual_tokens: int = 1
   image_embed_dropout_prob: float = 0.0
@@ -53,6 +54,8 @@ class FromageModel(nn.Module):
 
     if 'facebook/opt' in opt_version:
       self.lm = OPTForCausalLM.from_pretrained(opt_version)
+    elif 'microsoft/biogpt' in opt_version:
+      self.lm = BioGptForCausalLM.from_pretrained(opt_version)
     else:
       raise NotImplementedError
 
@@ -656,7 +659,14 @@ def load_fromage(model_dir: str) -> Fromage:
       model_kwargs = json.load(f)
 
   # Initialize tokenizer.
-  tokenizer = GPT2Tokenizer.from_pretrained(model_kwargs['opt_version'])
+  opt_version = args.opt_version
+  if 'facebook/opt' in opt_version:
+    tokenizer = GPT2Tokenizer.from_pretrained(model_kwargs['opt_version'])
+  elif 'microsoft/biogpt' in opt_version:
+    tokenizer = BioGptTokenizer.from_pretrained(model_kwargs['opt_version'])
+  else:
+    raise NotImplementedError
+  
   tokenizer.pad_token = tokenizer.eos_token
   # Add special tokens to the model to enable [RET].
   tokenizer.add_special_tokens({"cls_token": "<|image|>"})
