@@ -34,14 +34,14 @@ def get_dataset(args, split: str, tokenizer, precision: str = 'fp32') -> Dataset
   if split == 'train':
     if 'cc3m' in args.dataset:
       dataset_paths.append(os.path.join(args.dataset_dir, 'cc3m_train.tsv'))
-      image_data_dirs.append(os.path.join(args.image_dir, 'cc3m/training/'))
+      image_data_dirs.append(os.path.join(args.image_dir, 'training/'))
     else:
       raise NotImplementedError
 
   elif split == 'val':
     if 'cc3m' in args.val_dataset:
       dataset_paths.append(os.path.join(args.dataset_dir, 'cc3m_val.tsv'))
-      image_data_dirs.append(os.path.join(args.image_dir, 'cc3m/validation'))
+      image_data_dirs.append(os.path.join(args.image_dir, 'validation'))
     else:
       raise NotImplementedError
 
@@ -97,11 +97,11 @@ class CsvDataset(Dataset):
 
   def __getitem__(self, idx):
     while True:
-      image_path = os.path.join(self.base_image_dir, str(self.images[idx]))
+      image_path = os.path.join(self.base_image_dir, str(self.images[idx]).split(".")[0])
       caption = str(self.captions[idx])
 
       try:
-        img = Image.open(image_path)
+        img = Image.open(image_path.split(".")[0])
         images = utils.get_pixel_values_for_model(self.feature_extractor, img)
 
         caption += '[RET]'

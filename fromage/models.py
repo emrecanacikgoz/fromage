@@ -16,7 +16,7 @@ from PIL import Image, UnidentifiedImageError
 
 from transformers import AutoConfig, AutoModel, AutoModelForCausalLM
 from transformers import OPTForCausalLM, GPT2Tokenizer
-from transformers import BioGptTokenizer, BioGptForCausalLM
+from transformers import AutoTokenizer, BioGptForCausalLM
 from transformers import CLIPVisionModel, CLIPVisionConfig
 
 from fromage import utils
@@ -55,7 +55,7 @@ class FromageModel(nn.Module):
     if 'facebook/opt' in opt_version:
       self.lm = OPTForCausalLM.from_pretrained(opt_version)
     elif 'microsoft/biogpt' in opt_version:
-      self.lm = BioGptForCausalLM.from_pretrained(opt_version)
+      self.lm = OPTForCausalLM.from_pretrained(opt_version, use_cache=False)
     else:
       raise NotImplementedError
 
@@ -663,7 +663,7 @@ def load_fromage(model_dir: str) -> Fromage:
   if 'facebook/opt' in opt_version:
     tokenizer = GPT2Tokenizer.from_pretrained(model_kwargs['opt_version'])
   elif 'microsoft/biogpt' in opt_version:
-    tokenizer = BioGptTokenizer.from_pretrained(model_kwargs['opt_version'])
+    tokenizer = AutoTokenizer.from_pretrained(model_kwargs['opt_version'])
   else:
     raise NotImplementedError
   
